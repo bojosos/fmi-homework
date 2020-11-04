@@ -1,6 +1,6 @@
 #include <iostream>
 
-int64_t timeToStamp(int day, int month, int year, int hours, int minutes, int seconds)
+int64_t DateToTimestamp(int day, int month, int year, int hours, int minutes, int seconds)
 {
 	// Day 1.1.0000 is day 0
 	
@@ -22,80 +22,98 @@ int64_t timeToStamp(int day, int month, int year, int hours, int minutes, int se
 		case 2: daysFromStart += 28;
 		case 1: daysFromStart += 31;
 	}
-//	std::cout << daysFromStart << std::endl;
+
 	int remove = 0;
-	if (year % 4 == 0) // Leap year check if we are before or after
+	if (year % 4 == 0)
 	{
 		if (month == 0 || (month == 1 && day <= 28))
 		{
 			remove = 1;
 		}
 	}
-	//if (remove == 1)
-	//	std::cout << "Here" << std::endl;
-	//
-	std::cout << ((((year * 365L + year / 4 - year / 100 + year / 400) + daysFromStart - remove + 1) * 24 + hours) * 60 + minutes) * 60 + seconds << std::endl;
+
 	int64_t res = ((((year * 365L /* long? */ + year / 4 - year / 100 + year / 400) + daysFromStart - remove + 1) * 24 + hours) * 60 + minutes) * 60 + seconds;
-	std::cout << day << "." << month << "." << year << " " << hours << ":" << minutes << ":" << seconds << "->" << res << std::endl;
 	return res;
 }
 
-int decode(int64_t time)
+bool ValidateDate(int day, int month, int year, int hour, int minute, int second)
 {
-	std::cout << time / 24 / 60 / 60 << std::endl;
-	std::cout << (time / 60 / 60) % 24 << ":" << (time / 60) % 60 << ":" << time % 60 << std::endl;
-	return 1;
+	if (year < 0 || year > 9999)
+		return false;
+	if (month < 1 || month > 12)
+		return false;
+	int daysInMonth = 0;
+	if (month == 2 && year % 4 == 0 && (year % 100 != 0 || year % 400 == 0))
+	{
+		daysInMonth = 29;
+	}
+	else
+		switch(month)
+		{
+			case 1: daysInMonth = 31; break;
+			case 2: daysInMonth = 28; break;
+			case 3: daysInMonth = 31; break;
+			case 4: daysInMonth = 30; break;
+			case 5: daysInMonth = 31; break;
+			case 6: daysInMonth = 30; break;
+			case 7: daysInMonth = 31; break;
+			case 8: daysInMonth = 31; break;
+			case 9: daysInMonth = 30; break;
+			case 10: daysInMonth = 31; break;
+			case 11: daysInMonth = 30; break;
+			case 12: daysInMonth = 31; break;
+		}
+	
+	if (day < 0 || day > daysInMonth)
+		return false;
+	if (hour < 0 || hour > 24 || minute < 0 || minute > 59 || second < 0 || second > 59)
+		return false;
+	return true;
+}
+
+void PrintFormattedTime(int64_t time)
+{
+	uint32_t days = time / 24 / 60 / 60;
+	if (days != 0)
+		std::cout << days << "-";
+	int hh = (time / 60 / 60) % 24;
+	int mm = (time / 60) % 60;
+	int ss = (time % 60);
+
+	if (hh < 10)
+		std::cout << 0;
+	std::cout << hh << ":";
+	if (mm < 10)
+		std::cout << 0;
+	std::cout << mm << ":";
+	if (ss < 10)
+		std::cout << 0;
+	std::cout << ss << std::endl;
 }
 
 int main ()
 {
-	// Samo da otbeleja che godina 0000 ne sushtestuva
-
-	// Check if day in leap year is after or before 02.28
-	// Add every 400 remove every 100 add every 4
-	
-	int day1, month1, year1, hours1, mins1, secs1;
-	char tmp1;
-	std::cin >> day1 >> tmp1 >> month1 >> tmp1 >> year1 >> hours1 >> tmp1 >> mins1 >> tmp1 >> secs1;
-
-	int day, month, year, hours, mins, secs;
+	int day1, month1, year1, hour1, min1, sec1;
 	char tmp;
-	std::cin >> day >> tmp >> month >> tmp >> year >> hours >> tmp >> mins >> tmp >> secs;
-
-//	std::cout << timeToStamp(day, month, year, hours, mins, secs) << std::endl;
-//	std::cout << timeToStamp(day1, month1, year1, hours1, mins1, secs1) << std::endl;
-//	std::cout << timeToStamp(day, month, year, hours, mins, secs) - timeToStamp(day1, month1, year1, hours1, mins1, secs1) << std::endl;
-
-	std::cout << decode(std::abs(timeToStamp(day, month, year, hours, mins, secs) - timeToStamp(day1, month1, year1, hours1, mins1, secs1)));
-/*
-	int days[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-	int last = -1;
-	int errors = 0;
-	for (int year = 0; year < 101; year++)
+	std::cin >> day1 >> tmp >> month1 >> tmp >> year1 >> hour1 >> tmp >> min1 >> tmp1 >> sec1;
+	
+	if (!ValidateDate(day1, month1, year1, hour1, min1, sec1))
 	{
-		for (int month  = 1; month <= 12; month++)
-		{
-			if (year % 4 == 0)
-			{
-				days[1] = 29;
-			}
-			else
-				days[1] = 28;
-
-			for (int day = 1; day <= days[month - 1]; day++)
-			{
-			//	std::cout << day << "." << month << "." << year << "->" << timeToStamp(day, month, year)  << std::endl;
-				if (last + 1 != timeToStamp(day, month, year))
-				{
-					std::cout << "Error" << std::endl;
-					errors += 1;
-	//				return 0;
-				}
-				last = timeToStamp(day, month, year);
-			}
-		}
+		std::cout << "Invalid date/time" << std::endl;
+		return 0;
 	}
-	std::cout << errors << std::endl;
-*/
+
+	int day2, month2, year2, hour2, min2, sec2;
+	char tmp;
+	std::cin >> day2 >> tmp >> month2 >> tmp >> year2 >> hour2 >> tmp >> min2 >> tmp >> sec2;
+
+	if (!ValidateDate(day2, month2, year2, hour2, min2, sec2))
+	{
+		std::cout << "Invalid date/time" << std::endl;
+		return 0;
+	}
+
+	PrintFormattedTime(std::abs(DateToTimestamp(day1, month1, year1, hour1, min1, sec1) - DateToTimestamp(day2, month2, year2, hour2, min2, sec2)));
+
 	return 0;
 }
